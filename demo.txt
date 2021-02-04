@@ -1,0 +1,2 @@
+This is a statement written using python file handling operations.
+This is statement 2.
