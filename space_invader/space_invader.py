@@ -100,15 +100,30 @@ class Enemy:
 
 class Text:
 
-    def __init__(self, text, size, pos, color=(255,255,255)):
-        self.font = pygame.font.SysFont("Arial", size, True)
+    def __init__(self, text, size, pos, fontname="Arial", color=(255,255,255)):
         self.text = text
-        self.color = color
         self.pos = pos
+        
+        self.fontname = fontname
+        self.size = size
+        self.color = color
+        self.set_font()
+        self.render()
 
-    def draw(self, text, screen):
-        text_surface = self.font.render(text, True, self.color)
-        screen.blit(text_surface, self.pos)
+    def set_font(self):
+        self.font = pygame.font.SysFont(self.fontname, self.size, True)
+
+    def render(self):
+        """ render the text into an image/ Surface """
+        self.image = self.font.render(self.text, True, self.color)
+    
+    def update(self, text):
+        self.text = text
+        self.render()
+
+    def draw(self, screen):
+        screen.blit(self.image, self.pos)
+
 
 # Score
 score = 0
@@ -152,9 +167,9 @@ def gameover(screen, score):
             if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
                 run = False
 
-        over_text.draw("GAME OVER!!", screen)
-        score_text.draw("Final Score: "+str(score), screen)
-        message.draw("Press Q to Quit", screen)
+        over_text.draw(screen)
+        score_text.draw(screen)
+        message.draw(screen)
 
         pygame.display.update()
 
@@ -205,17 +220,16 @@ while run:
             e.respawn()
             b.respawn(p.x)
             score += 1
-
+            score_text.update("Score: "+str(score)) # update text of score_text
 
         # gameover
         if e.y >= 386:
             gameover(screen, score)
             run = False
              
-    
     for e in es:
         e.draw(screen)
-    score_text.draw("Score: "+str(score), screen)
+    score_text.draw(screen)
     b.draw(screen)
     p.draw(screen)
     pygame.display.update()
