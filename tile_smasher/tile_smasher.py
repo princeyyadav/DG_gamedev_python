@@ -1,6 +1,15 @@
 import pygame, random
 pygame.init()
 
+class Image:
+
+    def __init__(self, path, pos):
+        self.image = pygame.image.load(path) # image is Surface
+        self.pos = pos
+
+    def draw(self, screen):
+        screen.blit(self.image, self.pos)
+
 class Button:
 
     def __init__(self, surface, pos):
@@ -56,12 +65,15 @@ class Tile:
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
-        
-        
 
-def timeout(screen):
+    def mousehover(self, mpos):
+        return self.rect.collidepoint(mpos)
+        
+def gameover(screen, score):
 
     run = True
+    gameover = Text("GAMEOVER!!", 50, (300,200))
+    score_txt = Text("SCORE: "+str(score), 50, (340, 300))
     while run:
 
         screen.fill(BLACK)
@@ -70,6 +82,103 @@ def timeout(screen):
             if event.type == pygame.QUIT:
                 run = False
 
+        gameover.draw(screen)
+        score_txt.draw(screen)
+        pygame.display.update()
+
+def arcade(screen):
+
+    life = 10
+    heart = Image("assets/heart.png", (800-10-32, 10))
+
+    # tile 
+    tile = Tile(100,100, RED)
+    start = pygame.time.get_ticks()
+
+    score = 0
+    score_txt = Text("Score: 0", 32, (10,10))
+
+    run = True
+    while run:
+
+        clicked = False # clicked on tile or not
+
+        screen.fill(BLACK)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+
+
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mpos = pygame.mouse.get_pos()
+                if tile.mousehover(mpos):
+                    clicked = True
+                    tile.respawn()
+                    score += 1
+                    score_txt.update("Score: "+str(score))
+                    start = pygame.time.get_ticks()
+
+        if pygame.time.get_ticks() - start >= 1000:
+            tile.respawn()
+            start = pygame.time.get_ticks()
+            if not(clicked):
+                life -= 1
+                print(life)
+
+        # gameover
+        if life <= 0:
+            print("GAMEOVER")
+            gameover(screen, score)
+            run = False
+
+        for i in range(life):
+            heart.pos = (758-35*i, 10)
+            heart.draw(screen)
+        score_txt.draw(screen)
+        tile.draw(screen)
+        pygame.display.update()
+
+def timeout(screen):
+
+    # tile 
+    tile = Tile(100,100, RED)
+    run = True
+    start = pygame.time.get_ticks() # gives time in ms
+    gamestart = pygame.time.get_ticks()
+    
+    # score
+    score = 0
+    score_txt = Text("Score: 0", 32, (10,10))
+
+    while run:
+
+        screen.fill(BLACK)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mpos = pygame.mouse.get_pos()
+                if tile.mousehover(mpos):
+                    score += 1
+                    score_txt.update("Score: "+str(score))
+                    print(score)
+                    tile.respawn()
+                    start = pygame.time.get_ticks()
+
+        if pygame.time.get_ticks() - start >= 1000: # 1 sec has been lapsed
+            tile.respawn()
+            start = pygame.time.get_ticks()
+
+        # gameover
+        if pygame.time.get_ticks() - gamestart >= 10000:
+            print("GAMEOVER")
+            run = False
+            gameover(screen, score)
+
+        score_txt.draw(screen)
+        tile.draw(screen)
         pygame.display.update()
 
     run 
