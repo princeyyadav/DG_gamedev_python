@@ -6,3 +6,5 @@ This repository  contains code related to the Delhi Government Python Game Dev T
 ![](space_invader/GIF.gif)
 ## Collect the Coins
 ![](collect_coins/GIF.gif)
+## Tile Smasher
+![](tiler_smasher/GIF.gif)
