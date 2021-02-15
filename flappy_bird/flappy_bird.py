@@ -47,36 +47,54 @@ class Pipes:
         screen.blit(self.top, self.trect)
         screen.blit(self.bottom, self.brect)
 
+    def respawn(self):
+        self.trect.x = 300
+        self.brect.x = 300
+        self.trect.y = random.randint(-200, -100)
+        self.brect.y = self.trect.y + 320 + random.randint(100, 120)
+
     def move(self):
         self.trect.x -= self.vel
         self.brect.x -= self.vel
+        if self.trect.x <= -(self.trect.width):
+            self.respawn()
 
-        global score
 
-        if self.trect.x <= -self.trect.width:
-            self.trect.x = 300
-            self.brect.x = 300
-            self.trect.y = random.randint(-200, -100)
-            self.brect.y = self.trect.y + 320 + random.randint(100, 120)
-            score += 1
-
-        
-def gameover(screen):
+def gameover(screen, score, base, bird, pipes):
 
     gameover = pygame.image.load("images/gameover.png")
+    gameover.set_colorkey(BLACK) # make BLACK color transparent
+
+    font = pygame.font.SysFont("Arial", 35, True)
+    score_image = font.render("SCORE: "+str(score), True, (50, 50, 50))
+
     run = True
     while run:
+
+        screen.fill(SKYBLUE)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-
-        screen.blit(gameover, (60,250))
+  
+        
+        bird.draw(screen)
+        for p in pipes:
+            p.draw(screen)
+        screen.blit(base, (0,400))
+        screen.blit(gameover, (60,150))
+        screen.blit(score_image, (90, 210))
         pygame.display.update()
 
 def display_score(score, font, screen):
     image = font.render(str(score), True, WHITE)
     screen.blit(image, (10, 10))
+
+def update_score(score, p):
+    if p.trect.x <= -(p.trect.width-2): # -width & -width+1 didn't work
+        score += 1
+        print(score)
+    return score
 
 def game(screen):
 
@@ -103,9 +121,8 @@ def game(screen):
     clock = pygame.time.Clock()
 
     # score
-    global score
     score = 0
-    font = pygame.font.SysFont("Arial", 32, True)
+    font = pygame.font.SysFont("Arial", 40, True)
 
     run = True
     while run:
@@ -128,16 +145,17 @@ def game(screen):
         b.move()
         for p in pipes:
             p.move()
+            score = update_score(score, p)
             if b.collide(p):
                 print("GAMEOVER")
-                gameover(screen)
+                gameover(screen, score, base, b, pipes)
                 run = False
 
+        b.draw(screen)
         for p in pipes:    
             p.draw(screen)
-        b.draw(screen)
+        screen.blit(base,(0, 400))
         display_score(score, font, screen)
-        screen.blit(base, (0, 400))
         pygame.display.update()
 
     
