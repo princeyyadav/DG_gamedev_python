@@ -8,3 +8,5 @@ This repository  contains code related to the Delhi Government Python Game Dev T
 ![](collect_coins/GIF.gif)
 ## Tile Smasher
 ![](tile_smasher/GIF.gif)
+## Flappy Bird
+![](flappy_bird/GIF.gif)
