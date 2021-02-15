@@ -94,6 +94,7 @@ def update_score(score, p):
     if p.trect.x <= -(p.trect.width-2): # -width & -width+1 didn't work
         score += 1
         print(score)
+        point_sound.play()
     return score
 
 def game(screen):
@@ -136,6 +137,7 @@ def game(screen):
 
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 b.fly = True
+                wing_sound.play()
                 # print("SPACE")
 
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
@@ -147,7 +149,7 @@ def game(screen):
             p.move()
             score = update_score(score, p)
             if b.collide(p):
-                print("GAMEOVER")
+                die_sound.play()
                 gameover(screen, score, base, b, pipes)
                 run = False
 
@@ -158,7 +160,11 @@ def game(screen):
         display_score(score, font, screen)
         pygame.display.update()
 
-    
+
+# sounds
+die_sound = pygame.mixer.Sound("sounds/die.wav")
+point_sound = pygame.mixer.Sound("sounds/point.wav")
+wing_sound = pygame.mixer.Sound("sounds/wing.wav")    
 
 w, h = 300, 500
 screen = pygame.display.set_mode((w, h))
