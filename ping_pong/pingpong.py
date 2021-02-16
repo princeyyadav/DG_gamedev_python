@@ -2,10 +2,11 @@ import pygame, random
 pygame.init()
 
 # colors
-RED = (220, 0, 0)
+RED = (201, 0, 0)
 WHITE = (255, 255, 255)
 YELLOW = (237, 186, 0)
 GREY = (130, 130, 130)
+BLACK = (0,0,0)
 
 class Text:
 
@@ -48,14 +49,141 @@ class Button:
     def draw(self, screen):
         screen.blit(self.image, (self.rect.x, self.rect.y))
 
+class Player(pygame.Rect):
+
+    def __init__(self, x, y, w, h, color):
+        super().__init__(x, y, w, h)
+        self.color = color
+        self.score = 0
+        self.yvel = 0
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, self.color, self)
+
+    def move(self):
+        self.y += self.yvel
+
+        if self.y <= 0:
+            self.y = 0
+        elif self.bottom >= 600:
+            self.bottom = 600
+
+
+class Opponent(Player):
+
+    def __init__(self, x, y, w, h, color, level):
+        super().__init__(x, y, w, h, color)
+        self.yvel = 3 + level
+        print(self.yvel)
+
+    def move(self, b):
+        if b.top < self.top:
+            self.top -= self.yvel
+        elif b.bottom >= self.bottom:
+            self.bottom += self.yvel
+
+class Ball(pygame.Rect):
+
+    def __init__(self, x, y, w, h, color, num=10):
+        super().__init__(x, y, w, h)
+        self.color = color
+        self.xvel = 6
+        self.yvel = 6
+        self.num = num
+
+    def move(self, p, o):
+        self.y += self.yvel
+        self.x += self.xvel
+
+        if self.top <= 0 or self.bottom >= 600:
+            self.yvel *= -1
+
+        if self.left <= 0:
+            p.score += 1
+            self.respawn()
+            
+        elif self.right >= 800:
+            o.score += 1
+            self.respawn()
+
+    def respawn(self):
+        self.num -= 1
+        self.center = 400, 300
+        self.xvel *= random.choice([1, -1])
+        self.yvel *= random.choice([1,-1])
+
+    def draw(self, screen):
+        pygame.draw.ellipse(screen, self.color, self)
+
+    def collide(self, o, p):
+        if self.colliderect(p) or self.colliderect(o):
+            self.xvel *= -1
+
+def display_score(screen, font, ps, os):
+    image = font.render(str(ps), True, WHITE)
+    screen.blit(image, (420,250))
+    image = font.render(str(os), True, WHITE)
+    screen.blit(image, (348,250)) # 400-20-32
 
 def maingame(screen, level, total_balls=10):
+    
+    # player
+    p = Player(780, 250, 10, 100, RED)
+
+    # opponent
+    o = Opponent(10, 250, 10, 100, RED, level)
+
+    # ball
+    b = Ball(400, 300, 25, 25, YELLOW, total_balls)
+
+    # clock
+    FPS = 60
+    clock = pygame.time.Clock()
+
+    # score
+    font = pygame.font.SysFont("comicsansman", 32, False, True)
+    
     run = True
     while run:
+        screen.fill(BLACK)
+        clock.tick(FPS)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
 
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    p.yvel = -8
+                    print("UP")
+                if event.key == pygame.K_DOWN:
+                    p.yvel = 8
+                    print("DOWN")
+            if event.type == pygame.KEYUP and (event.key == pygame.K_UP or event.key == pygame.K_DOWN):
+                p.yvel = 0
+                # print("RELEASED")
+
+        b.move(p, o)
+        p.move()
+        o.move(b)
+
+        b.collide(o, p)
+
+        # gameover
+        if b.num <= 0:
+            if p.score > o.score:
+                print("YOU WIN")
+            elif p.score < o.score:
+                print("YOU LOSE")
+            else:
+                print("DRAW")
+            run = False
+            
+        b.draw(screen)
+        o.draw(screen)
+        p.draw(screen)
+        pygame.draw.aaline(screen, WHITE, (400,0), (400,600)) # vertical line
+        display_score(screen, font, p.score, o.score)
         pygame.display.update()
 
 w, h = 800, 600
@@ -102,7 +230,7 @@ while run:
             elif hard_btn.mousehover(mpos):
                 level = 3
             elif start_btn.mousehover(mpos) and level:
-                maingame(screen, level)
+                maingame(screen, level, int(inp))
                 print("START CLICKED", level)
 
         if event.type == pygame.KEYDOWN:
