@@ -6,7 +6,9 @@ RED = (201, 0, 0)
 WHITE = (255, 255, 255)
 YELLOW = (237, 186, 0)
 GREY = (130, 130, 130)
+GREEN = (165, 204, 0)
 BLACK = (0,0,0)
+BLUE= (85, 149, 237)
 
 class Text:
 
@@ -97,13 +99,17 @@ class Ball(pygame.Rect):
 
         if self.top <= 0 or self.bottom >= 600:
             self.yvel *= -1
+            pong_sound.play()
+
 
         if self.left <= 0:
             p.score += 1
+            score_sound.play()
             self.respawn()
             
         elif self.right >= 800:
             o.score += 1
+            score_sound.play()
             self.respawn()
 
     def respawn(self):
@@ -118,12 +124,37 @@ class Ball(pygame.Rect):
     def collide(self, o, p):
         if self.colliderect(p) or self.colliderect(o):
             self.xvel *= -1
+            pong_sound.play()
 
 def display_score(screen, font, ps, os):
     image = font.render(str(ps), True, WHITE)
-    screen.blit(image, (420,250))
+    screen.blit(image, (440,250))
     image = font.render(str(os), True, WHITE)
-    screen.blit(image, (348,250)) # 400-20-32
+    screen.blit(image, (350,250)) # 400-20-32
+
+def gameover(screen, font, p, o, b):
+    if p.score > o.score:
+        text = "YOU WIN!!"
+    elif p.score < o.score:
+        text = "YOU LOSE!!"
+    else:
+        text = "IT'S A DRAW"
+    text_obj = Text(text, 60, (260,180), "timesnewroman", GREEN)
+    
+    run = True
+    while run:
+        screen.fill(BLACK)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+
+        pygame.draw.aaline(screen, WHITE, (400,0), (400,600))
+        for obj in [p, o, b, text_obj]:
+            obj.draw(screen)
+        display_score(screen, font, p.score, o.score)
+        pygame.display.update()
+
 
 def maingame(screen, level, total_balls=10):
     
@@ -145,7 +176,7 @@ def maingame(screen, level, total_balls=10):
     
     run = True
     while run:
-        screen.fill(BLACK)
+        screen.fill(pygame.Color("grey12"))
         clock.tick(FPS)
 
         for event in pygame.event.get():
@@ -171,12 +202,7 @@ def maingame(screen, level, total_balls=10):
 
         # gameover
         if b.num <= 0:
-            if p.score > o.score:
-                print("YOU WIN")
-            elif p.score < o.score:
-                print("YOU LOSE")
-            else:
-                print("DRAW")
+            gameover(screen, font, p, o, b)
             run = False
             
         b.draw(screen)
@@ -209,6 +235,10 @@ inp_rect = pygame.Rect(340, 430, 200, 60) # text box
 start = Text("START", 40, (370, 520))
 start_btn = Button(start.image, (370, 520))
 
+# sounds
+score_sound = pygame.mixer.Sound("assets/score.ogg")
+pong_sound = pygame.mixer.Sound("assets/pong.ogg")
+
 inp = ""
 level = 0
 run = True
@@ -238,6 +268,7 @@ while run:
                 print("BACKSPACE")
                 inp = inp[:-1]
             elif event.key == pygame.K_RETURN: # enter key
+                maingame(screen, level, int(inp))
                 print("ENTER")
             else:
                 inp += event.unicode
