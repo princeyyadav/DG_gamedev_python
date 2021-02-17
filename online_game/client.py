@@ -47,13 +47,13 @@ class Player:
 
         if self.rect.x <= 0:
             self.rect.x = 0
-        elif self.rect.right >= 600:
-            self.rect.right = 600
+        elif self.rect.right >= w:
+            self.rect.right = w
         
         if self.rect.y <= 0:
             self.rect.y = 0
-        elif self.rect.bottom >= 600:
-            self.rect.bottom = 600
+        elif self.rect.bottom >= h:
+            self.rect.bottom = h
 
 def make_str(tup):
     return str(tup[0])+","+str(tup[1])
@@ -63,7 +63,7 @@ def make_tuple(st):
     return int(st[0]), int(st[1])
     
 
-w, h = 600, 600
+w, h = 500, 500
 screen = pygame.display.set_mode((w,h))
 caption = "CLIENT"
 pygame.display.set_caption(caption)
@@ -76,7 +76,7 @@ x, y = make_tuple(n.pos) # coordinates receiced from server
 p = Player(x, y, 100, 100, RED)
 p2 = Player(0, 0, 100, 100, GREEN)
 
-FPS = 20
+FPS = 30
 clock = pygame.time.Clock()
 
 run = True
